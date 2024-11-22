@@ -6,13 +6,11 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description"
-    content="ZeroGS: Training 3D Gaussian Splatting from Unposed Images">
+  <meta name="description" content="ZeroGS: Training 3D Gaussian Splatting from Unposed Images">
 
   <!--Twitter preview-->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title"
-    content="ZeroGS: Training 3D Gaussian Splatting from Unposed Images">
+  <meta name="twitter:title" content="ZeroGS: Training 3D Gaussian Splatting from Unposed Images">
   <meta name="twitter:description"
     content="NUS&#39; ZeroGS is a method that trains 3D Gaussian Splatting from unposed images.">
   <!-- <meta name="twitter:image" content="https://aibluefisher.github.io/dogaussian/assets/social_card.png"> -->
@@ -21,8 +19,7 @@
 
   <link href="./assets/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./assets/all.min.css">
-  <link href="./assets/style.css" rel="stylesheet">
-
+  <link rel="stylesheet" href="./assets/style.css">
   <link rel="stylesheet" href="./assets/slider.css">
 
   <!-- <link rel="icon" href="./assets/imgs/dog_icon.png"> -->
@@ -33,8 +30,12 @@
     doBBBd()
     document.addEventListener('keyup', function () { _countAA -= 10; doBBBd() }, false)
     document.addEventListener('click', function () { _countAA -= 10; doBBBd() }, false)
-
   </script>
+  
+  <script src="./assets/jquery.min.js"></script>
+  <link rel="stylesheet" href="./assets/dics.original.css">
+  <script src="./assets/event_handler.js"></script>
+  <script src="./assets/dics.original.js"></script>
 </head>
 
 <body data-new-gr-c-s-check-loaded="14.1173.0" data-gr-ext-installed="">
@@ -60,7 +61,7 @@
           <a href="https://scholar.google.com/citations?user=KkAjki8AAAAJ&hl=en" target="_blank">
             <nobr>Evangelos Ververas<sup>2</sup></nobr>&nbsp;&nbsp;&nbsp;
           </a>
-          <br/>
+          <br />
           <a href="https://scholar.google.com/citations?user=9a1PjCIAAAAJ&hl=en" target="_blank">
             <!-- <nobr>Jifei Song<sup>3</sup></nobr>&nbsp;&nbsp;&nbsp; -->
             <nobr>Jifei Song</nobr>&nbsp;&nbsp;&nbsp;
@@ -135,7 +136,8 @@
         <h3 class="mt-5">Watch <b>ZeroGS</b> reconstructed camera poses</h3>
         <hr class="hr">
         <p>
-          We visualize the incremental reconstruction process of <b>ZeroGS</b> on the MipNeRF360 and Tanks-and-Temples dataset.
+          We visualize the incremental reconstruction process of <b>ZeroGS</b> on the MipNeRF360 and Tanks-and-Temples
+          dataset.
           <b>Use the controls to switch between scenes.</b>
         </p>
 
@@ -224,7 +226,7 @@
               </div>
             </div>
           </div>
-          
+
           <button class="carousel-control-prev" type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
@@ -238,7 +240,8 @@
         <h3 class="mt-5">Watch <b>ZeroGS</b> reconstructed scenes</h3>
         <hr class="hr">
         <p>
-          We visualize the reconstructed camera poses and pointmaps of <b>ZeroGS</b> on the MipNeRF360 and Tanks-and-Temples
+          We visualize the reconstructed camera poses and pointmaps of <b>ZeroGS</b> on the MipNeRF360 and
+          Tanks-and-Temples
           dataset.
           <b>Use the controls to switch between scenes.</b>
         </p>
@@ -343,124 +346,107 @@
 
         <img class="w-100 mb-3" src="./assets/imgs/zero_gs_pipeline.png" alt="">
         <p>
-          Our method follows the classical incremental SfM reconstruction pipeline with the key difference that the input is no longer 
-          an image but a pair of images in a progressively updated training buffer. The scene regressor network is trained as follows:
-          <br/>
-          (1) Use <a href="https://hengyiwang.github.io/projects/spanner" target="_blank">Spann3R</a> as the scene regressor network to predict 3D Gaussians 
+          Our method follows the classical incremental SfM reconstruction pipeline with the key difference that the
+          input is no longer
+          an image but a pair of images in a progressively updated training buffer. The scene regressor network is
+          trained as follows:
+          <br />
+          (1) Use <a href="https://hengyiwang.github.io/projects/spanner" target="_blank">Spann3R</a> as the scene
+          regressor network to predict 3D Gaussians
           and pointmaps from a pair of images.
-          <br/>
+          <br />
           (2) Leverage RANSAC and a PnP solver to obtain the initial camera poses based on direct 2D-3D correspondences.
-          <br/>
-          (3) Refine the coarse camera poses by minimizing the point-to-ray consistency loss between 3D tracks and camera centers.
-          <br/>
-          (4) Rasterize the 3D Gaussians with the refined camera poses to render images. An RGB loss is adopted for back-propagating gradients.
-          <br/>
+          <br />
+          (3) Refine the coarse camera poses by minimizing the point-to-ray consistency loss between 3D tracks and
+          camera centers.
+          <br />
+          (4) Rasterize the 3D Gaussians with the refined camera poses to render images. An RGB loss is adopted for
+          back-propagating gradients.
+          <br />
           (5) After each training epoch, we update the training buffer by registering more images.
-          <br/>
+          <br />
         </p>
 
-        <h3 class="mt-5"><b>ZeroGS</b> on novel view synthesis</h3>
+        <h3 class="mt-5"><b>ZeroGS</b> novel view synthesis on LLFF dataset</h3>
         <hr class="hr">
 
-
-        <div class="row align-items-start">
-          <div id="example4" class="bal-container-small">
-            <div class="bal-after">
-              <img src="./assets/imgs/family_ours.png">
-              <div class="bal-afterPosition afterLabel" style="z-index:1;">
-                ZeroGS
-              </div>
-            </div>
-
-            <div class="bal-before" style="width:6.369426751592357%;">
-              <div class="bal-before-inset" style="width: 628px;">
-                <img src="./assets/imgs/family_3dgs.png">
-                <div class="bal-beforePosition beforeLabel">
-                  3DGS+COLMAP
-                </div>
-              </div>
-            </div>
-
-            <div class="bal-handle" style="left:6.369426751592357%;">
-              <span class=" handle-left-arrow"></span>
-              <span class="handle-right-arrow"></span>
-            </div>
-          </div>
-          <hr>
-
-          <div id="example3" class="bal-container-small">
-            <div class="bal-after">
-              <img src="./assets/imgs/train_ours.png">
-              <div class="bal-afterPosition afterLabel" style="z-index:1;">
-                ZeroGS
-              </div>
-            </div>
-
-            <div class="bal-before" style="width:6.369426751592357%;">
-              <div class="bal-before-inset" style="width: 628px;">
-                <img src="./assets/imgs/train_3dgs.png">
-                <div class="bal-beforePosition beforeLabel">
-                  3DGS+COLMAP
-                </div>
-              </div>
-            </div>
-
-            <div class="bal-handle" style="left:6.369426751592357%;">
-              <span class=" handle-left-arrow"></span>
-              <span class="handle-right-arrow"></span>
-            </div>
-          </div>
-          <hr>
+        <ul class="nav nav-tabs nav-fill nav-justified" id="object-scale-recon">
+          <li class="nav-item">
+            <a class="nav-link active" onclick="objectSceneEvent('llff', 0, 0, 'object-scale-recon', 0)">Fern</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('llff', 1, 0, 'object-scale-recon', 0)">Flower</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('llff', 2, 0, 'object-scale-recon', 0)">Fortress</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('llff', 3, 0, 'object-scale-recon', 0)">Horns</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('llff', 4, 0, 'object-scale-recon', 0)">Leaves</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('llff', 5, 0, 'object-scale-recon', 0)">Orchids</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('llff', 6, 0, 'object-scale-recon', 0)">Room</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('llff', 7, 0, 'object-scale-recon', 0)">Trex</a>
+          </li>
+        </ul>
+        <div class="b-dics" style="width: 3000px">
+          <img src="./assets/imgs/llff/Fern/cf_3dgs.png" alt="CF-3DGS">
+          <img src="./assets/imgs/llff/Fern/3dgs.png" alt="3DGS">
+          <img src="./assets/imgs/llff/Fern/zerogs.png" alt="ZeroGS">
         </div>
 
-        <div class="row align-items-start">
-          <div id="example1" class="bal-container-small">
-            <div class="bal-after">
-              <img src="./assets/imgs/fern_ours.png">
-              <div class="bal-afterPosition afterLabel" style="z-index:1;">
-                ZeroGS
-              </div>
-            </div>
 
-            <div class="bal-before" style="width:6.369426751592357%;">
-              <div class="bal-before-inset" style="width: 628px;">
-                <img src="./assets/imgs/fern_cf3dgs.png">
-                <div class="bal-beforePosition beforeLabel">
-                  CF-3DGS
-                </div>
-              </div>
-            </div>
+        <h3 class="mt-5"><b>ZeroGS</b> novel view synthesis on MipNeRF360 dataset</h3>
+        <hr class="hr">
 
-            <div class="bal-handle" style="left:6.369426751592357%;">
-              <span class=" handle-left-arrow"></span>
-              <span class="handle-right-arrow"></span>
-            </div>
-          </div>
-          <hr>
+        <ul class="nav nav-tabs nav-fill nav-justified" id="object-scale-recon2">
+          <li class="nav-item">
+            <a class="nav-link active" onclick="objectSceneEvent('mipnerf360', 8, 1, 'object-scale-recon2', 1)">Bicycle</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('mipnerf360', 9, 1, 'object-scale-recon2', 1)">Counter</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('mipnerf360', 10, 1, 'object-scale-recon2', 1)">Garden</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('mipnerf360', 11, 1, 'object-scale-recon2', 1)">Kitchen</a>
+          </li>
+        </ul>
+        <div class="b-dics" style="width: 3000px">
+          <!-- <img src="./assets/imgs/mipner/Bicycle/cf_3dgs.png" alt="CF-3DGS"> -->
+          <img src="./assets/imgs/mipnerf360/Bicycle/3dgs.png" alt="3DGS">
+          <img src="./assets/imgs/mipnerf360/Bicycle/zerogs.png" alt="ZeroGS">
+        </div>
 
-          <div id="example2" class="bal-container-small">
-            <div class="bal-after">
-              <img src="./assets/imgs/garden_ours.png">
-              <div class="bal-afterPosition afterLabel" style="z-index:1;">
-                ZeroGS
-              </div>
-            </div>
+      
+        <h3 class="mt-5"><b>ZeroGS</b> novel view synthesis on Tanks-and-Temples dataset</h3>
+        <hr class="hr">
 
-            <div class="bal-before" style="width:6.369426751592357%;">
-              <div class="bal-before-inset" style="width: 628px;">
-                <img src="./assets/imgs/garden_3dgs.png">
-                <div class="bal-beforePosition beforeLabel">
-                  3DGS+COLMAP
-                </div>
-              </div>
-            </div>
-
-            <div class="bal-handle" style="left:6.369426751592357%;">
-              <span class=" handle-left-arrow"></span>
-              <span class="handle-right-arrow"></span>
-            </div>
-          </div>
-          <hr>
+        <ul class="nav nav-tabs nav-fill nav-justified" id="object-scale-recon3">
+          <li class="nav-item">
+            <a class="nav-link active" onclick="objectSceneEvent('tnt', 12, 1, 'object-scale-recon3', 2)">Family</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('tnt', 13, 1, 'object-scale-recon3', 2)">Francis</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('tnt', 14, 1, 'object-scale-recon3', 2)">Ignatius</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="objectSceneEvent('tnt', 15, 1, 'object-scale-recon3', 2)">Train</a>
+          </li>
+        </ul>
+        <div class="b-dics" style="width: 3000px">
+          <img src="./assets/imgs/tnt/Family/3dgs.png" alt="3DGS">
+          <img src="./assets/imgs/tnt/Family/zerogs.png" alt="ZeroGS">
         </div>
 
         <h3 class="mt-5" id="citation">Please consider citing our paper</h3>
@@ -475,8 +461,8 @@
         <h3 class="mt-5">Acknowledgement</h3>
         <p>
           This work is built upon <a href="https://nianticlabs.github.io/acezero/" target="_blank">ACE0</a>,
-          <a href="https://github.com/naver/dust3r" target="_blank">DUSt3R</a>, and 
-          <a href="https://hengyiwang.github.io/projects/spanner" target="_blank">Spann3R</a>. We sincerely 
+          <a href="https://github.com/naver/dust3r" target="_blank">DUSt3R</a>, and
+          <a href="https://hengyiwang.github.io/projects/spanner" target="_blank">Spann3R</a>. We sincerely
           thank all the authors for releasing their code.
         </p>
 

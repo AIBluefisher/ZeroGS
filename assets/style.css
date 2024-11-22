@@ -69,3 +69,10 @@ li {
   color: black;
   background-color: rgba(71, 63, 63, 0.5);
 }
+
+.b-dics__slider {
+  color: #f0f0f0;
+}
+.b-dics__slider:after {
+  width: 2px;
+}
