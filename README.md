@@ -1,4 +1,4 @@
-# ZeroGS: 
+# ZeroGS
 
 <b>ZeroGS</b>: Training 3D Gaussian Splatting from Unposed Images
 
