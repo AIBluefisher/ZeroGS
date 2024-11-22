@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="ZeroGS: Training 3D Gaussian Splatting from Unposed Images">
+
+  <!--Twitter preview-->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title"
+    content="ZeroGS: Training 3D Gaussian Splatting from Unposed Images">
+  <meta name="twitter:description"
+    content="NUS&#39; ZeroGS is a method that trains 3D Gaussian Splatting from unposed images.">
+  <!-- <meta name="twitter:image" content="https://aibluefisher.github.io/dogaussian/assets/social_card.png"> -->
+
+  <title>ZeroGS</title>
+
+  <link href="./assets/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/all.min.css">
+  <link href="./assets/style.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="./assets/slider.css">
+
+  <!-- <link rel="icon" href="./assets/imgs/dog_icon.png"> -->
+  <style type="text/css" abt="234"></style>
+  <script>//remove baidu search ad
+    var _countAA = 0
+    function doBBBd() { }
+    doBBBd()
+    document.addEventListener('keyup', function () { _countAA -= 10; doBBBd() }, false)
+    document.addEventListener('click', function () { _countAA -= 10; doBBBd() }, false)
+
+  </script>
+</head>
+
+<body data-new-gr-c-s-check-loaded="14.1173.0" data-gr-ext-installed="">
+
+  <div class="container">
+    <div class="row text-center">
+      <h1 class="mt-3">
+        <!-- <img src="./assets/imgs/dog_icon.png" style="height: 50px; width: auto"> -->
+        ZeroGS: Training 3D Gaussian Splatting from Unposed Images
+      </h1>
+      <!-- <h3 class="mb-4">for Large-Scale 3D Reconstruction Via Gaussian Consensus</h3> -->
+    </div>
+    <div class="row text-center">
+      <div class="col-sm-0 col-md-2"></div>
+      <div class="col-sm-12 col-md-8">
+        <h6>
+          <a href="https://aibluefisher.github.io/" target="_blank">
+            <nobr>Yu Chen<sup>1</sup></nobr>&nbsp;&nbsp;&nbsp;
+          </a>
+          <a href="https://rolpotamias.github.io/" target="_blank">
+            <nobr>Rolandos Alexandros Potamias<sup>2</sup></nobr>&nbsp;&nbsp;&nbsp;
+          </a>
+          <a href="https://scholar.google.com/citations?user=KkAjki8AAAAJ&hl=en" target="_blank">
+            <nobr>Evangelos Ververas<sup>2</sup></nobr>&nbsp;&nbsp;&nbsp;
+          </a>
+          <br/>
+          <a href="https://scholar.google.com/citations?user=9a1PjCIAAAAJ&hl=en" target="_blank">
+            <nobr>Jifei Song<sup>3</sup></nobr>&nbsp;&nbsp;&nbsp;
+          </a>
+          <a href="https://jiankangdeng.github.io/" target="_blank">
+            <nobr>Jiankang Deng<sup>2</sup></nobr>&nbsp;&nbsp;&nbsp;
+          </a>
+          <a href="https://www.comp.nus.edu.sg/~leegh/" target="_blank">
+            <nobr>Gim Hee Lee<sup>1</sup></nobr>
+          </a>
+        </h6>
+        <sup>1</sup>National University of Singapore&nbsp;&nbsp;
+        <sup>2</sup>Imperial College of London&nbsp;&nbsp;
+        <sup>3</sup>Queen Mary University London
+      </div>
+      <div class="col-sm-0 col-md-2"></div>
+      <div class="col-md-12 mt-3">
+        <a href="" class="btn btn-secondary btn-sm" target="_blank"><i
+            class="fa-solid fa-file-pdf"></i>&nbsp;&nbsp;arXiv</a>
+        <a href="" target="_blank" class="btn btn-secondary btn-sm"><i
+            class="fa-brands fa-youtube"></i>&nbsp;&nbsp;Video</a>
+        <a href="https://github.com/aibluefisher/ZeroGS" target="_blank" class="btn btn-secondary btn-sm"><i
+            class="fa-brands fa-github"></i>&nbsp;&nbsp;Code</a>
+        <a href="https://aibluefisher.github.io/zerogs/#citation" class="btn btn-secondary btn-sm"><i
+            class="fa-solid fa-file"></i>&nbsp;&nbsp;BibTeX</a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-0 col-md-2"></div>
+      <div class="col-sm-12 col-md-8">
+
+        <video class="w-100 mt-4" autoplay="" loop="" muted="">
+          <source src="./assets/videos/ZeroGS_demo.mp4" type="video/mp4">
+        </video>
+        <!-- 
+                    <iframe src="https://drive.google.com/file/d/1KZ84zTYgJSDZ4Tr62LLMaCm7hc-tp9qx/preview" 
+                    width="640" height="480" allow="autoplay">
+                    </iframe> -->
+
+        <h3 class="mt-3">Abstract</h3>
+        <hr>
+        <p>
+          Neural radiance fields (NeRF) and 3D Gaussian Splatting (3DGS) are popular techniques to reconstruct and
+          render photo-realistic images.
+          However, the pre-requisite of running Structure-from-Motion (SfM) to get camera poses limits their
+          completeness. While previous methods
+          can reconstruct from a few unposed images, they are not applicable when images are unordered or densely
+          captured. In this work, we propose
+          ZeroGS to train 3DGS from hundreds of unposed and unordered images. Our method leverages a pretrained
+          foundation model as the neural
+          scene representation. Since the accuracy of the predicted pointmaps does not suffice for accurate image
+          registration and high-fidelity
+          image rendering, we propose to mitigate the issue by initializing and finetuning the pretrained model from a
+          seed image.
+          Images are then progressively registered and added to the training buffer, which is further used to train the
+          model.
+          We also propose to refine the camera poses and pointmaps by minimizing a point-to-camera ray consistency loss
+          across multiple views.
+          Experiments on the LLFF dataset, the MipNeRF360 dataset, and the Tanks-and-Temples dataset show that our
+          method recovers more accurate
+          camera poses than state-of-the-art pose-free NeRF/3DGS methods, and even renders higher quality images than
+          3DGS with COLMAP poses.
+        </p>
+
+
+        <!-- <h3 class="mt-5" id="overview"> Watch a 3-minute overview video</h3>
+                    <hr class="hr">
+                    <video class="w-100 mb-4" controls="" preload="none" poster="assets/overview_video_poster.jpg">
+                        <source src="" type="video/mp4">
+                    </video> -->
+
+        <h3 class="mt-5">Watch <b>ZeroGS</b> reconstructed camera poses</h3>
+        <hr class="hr">
+        <p>
+          We visualize the incremental reconstruction process of <b>ZeroGS</b> on the MipNeRF360 and Tanks-and-Temples dataset.
+          <b>Use the controls to switch between scenes.</b>
+        </p>
+
+        <div id="ZeroGSPoseResults" class="carousel slide" data-bs-ride="false">
+          <div class="carousel-indicators">
+            <button type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide-to="0" class="active"
+              aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide-to="1"
+              aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide-to="2"
+              aria-label="Slide 3"></button>
+            <button type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide-to="3"
+              aria-label="Slide 4"></button>
+            <button type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide-to="4"
+              aria-label="Slide 5"></button>
+            <button type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide-to="5"
+              aria-label="Slide 6"></button>
+            <button type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide-to="6"
+              aria-label="Slide 7"></button>
+            <button type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide-to="7"
+              aria-label="Slide 8"></button>
+          </div>
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/mipnerf360/bicycle_zero_gs_pose.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>MipNeRF360 - Bicycle</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/mipnerf360/counter_zero_gs_pose.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>MipNeRF360 - Counter</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/mipnerf360/garden_zero_gs_pose.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>MipNeRF360 - Campus</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/mipnerf360/kitchen_zero_gs_pose.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>MipNeRF360 - Kitchen</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/tanks_and_temples/family_zero_gs_pose.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>Tanks-and-Temples - Family</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/tanks_and_temples/francis_zero_gs_pose.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>Tanks-and-Temples - Francis</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/tanks_and_temples/ignatius_zero_gs_pose.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>Tanks-and-Temples - Ignatius</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/tanks_and_temples/train_zero_gs_pose.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>Tanks-and-Temples - Train</h5>
+              </div>
+            </div>
+          </div>
+          
+          <button class="carousel-control-prev" type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#ZeroGSPoseResults" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+
+        <h3 class="mt-5">Watch <b>ZeroGS</b> reconstructed scenes</h3>
+        <hr class="hr">
+        <p>
+          We visualize the reconstructed camera poses and pointmaps of <b>ZeroGS</b> on the MipNeRF360 and Tanks-and-Temples
+          dataset.
+          <b>Use the controls to switch between scenes.</b>
+        </p>
+
+        <div id="ZeroGSReconResults" class="carousel slide" data-bs-ride="false">
+          <div class="carousel-indicators">
+            <button type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide-to="0" class="active"
+              aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide-to="1"
+              aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide-to="2"
+              aria-label="Slide 3"></button>
+            <button type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide-to="3"
+              aria-label="Slide 4"></button>
+            <button type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide-to="4"
+              aria-label="Slide 5"></button>
+            <button type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide-to="5"
+              aria-label="Slide 6"></button>
+            <button type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide-to="6"
+              aria-label="Slide 7"></button>
+            <button type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide-to="7"
+              aria-label="Slide 8"></button>
+          </div>
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/mipnerf360/bicycle_zero_gs_scene.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>MipNeRF360 - Bicycle</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/mipnerf360/counter_zero_gs_scene.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>MipNeRF3609 - Counter</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/mipnerf360/garden_zero_gs_scene.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>MipNeRF360 - Garden</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/mipnerf360/kitchen_zero_gs_scene.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>MipNeRF360 - Kitchen</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/tanks_and_temples/family_zero_gs_scene.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>Tanks-and-Temples - Family</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/tanks_and_temples/francis_zero_gs_scene.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>Tanks-and-Temples - Francis</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/tanks_and_temples/ignatius_zero_gs_scene.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>Tanks-and-Temples - Ignatius</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <video class="w-100" autoplay="" loop="" muted="">
+                <source src="./assets/videos/tanks_and_temples/train_zero_gs_scene.mp4" type="video/mp4">
+              </video>
+              <div class="carousel-caption">
+                <h5>Tanks-and-Temples - Train</h5>
+              </div>
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#ZeroGSReconResults" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+
+        <h3 class="mt-5">Incremental training pipeline of <b>ZeroGS</b></h3>
+        <hr class="hr">
+
+        <img class="w-100 mb-3" src="./assets/imgs/zero_gs_pipeline.png" alt="">
+        <p>
+          Our method follows the classical incremental SfM reconstruction pipeline with the key difference that the input is no longer 
+          an image but a pair of images in a progressively updated training buffer. The scene regressor network is trained as follows:
+          <br/>
+          (1) Use <a href="https://hengyiwang.github.io/projects/spanner" target="_blank">Spann3R</a> as the scene regressor network to predict 3D Gaussians 
+          and pointmaps from a pair of images.
+          <br/>
+          (2) Leverage RANSAC and a PnP solver to obtain the initial camera poses based on direct 2D-3D correspondences.
+          <br/>
+          (3) Refine the coarse camera poses by minimizing the point-to-ray consistency loss between 3D tracks and camera centers.
+          <br/>
+          (4) Rasterize the 3D Gaussians with the refined camera poses to render images. An RGB loss is adopted for back-propagating gradients.
+          <br/>
+          (5) After each training epoch, we update the training buffer by registering more images.
+          <br/>
+        </p>
+
+        <h3 class="mt-5"><b>ZeroGS</b> on novel view synthesis</h3>
+        <hr class="hr">
+
+
+        <div class="row align-items-start">
+          <div id="example4" class="bal-container-small">
+            <div class="bal-after">
+              <img src="./assets/imgs/family_ours.png">
+              <div class="bal-afterPosition afterLabel" style="z-index:1;">
+                ZeroGS
+              </div>
+            </div>
+
+            <div class="bal-before" style="width:6.369426751592357%;">
+              <div class="bal-before-inset" style="width: 628px;">
+                <img src="./assets/imgs/family_3dgs.png">
+                <div class="bal-beforePosition beforeLabel">
+                  3DGS+COLMAP
+                </div>
+              </div>
+            </div>
+
+            <div class="bal-handle" style="left:6.369426751592357%;">
+              <span class=" handle-left-arrow"></span>
+              <span class="handle-right-arrow"></span>
+            </div>
+          </div>
+          <hr>
+
+          <div id="example3" class="bal-container-small">
+            <div class="bal-after">
+              <img src="./assets/imgs/train_ours.png">
+              <div class="bal-afterPosition afterLabel" style="z-index:1;">
+                ZeroGS
+              </div>
+            </div>
+
+            <div class="bal-before" style="width:6.369426751592357%;">
+              <div class="bal-before-inset" style="width: 628px;">
+                <img src="./assets/imgs/train_3dgs.png">
+                <div class="bal-beforePosition beforeLabel">
+                  3DGS+COLMAP
+                </div>
+              </div>
+            </div>
+
+            <div class="bal-handle" style="left:6.369426751592357%;">
+              <span class=" handle-left-arrow"></span>
+              <span class="handle-right-arrow"></span>
+            </div>
+          </div>
+          <hr>
+        </div>
+
+        <div class="row align-items-start">
+          <div id="example1" class="bal-container-small">
+            <div class="bal-after">
+              <img src="./assets/imgs/fern_ours.png">
+              <div class="bal-afterPosition afterLabel" style="z-index:1;">
+                ZeroGS
+              </div>
+            </div>
+
+            <div class="bal-before" style="width:6.369426751592357%;">
+              <div class="bal-before-inset" style="width: 628px;">
+                <img src="./assets/imgs/fern_cf3dgs.png">
+                <div class="bal-beforePosition beforeLabel">
+                  CF-3DGS
+                </div>
+              </div>
+            </div>
+
+            <div class="bal-handle" style="left:6.369426751592357%;">
+              <span class=" handle-left-arrow"></span>
+              <span class="handle-right-arrow"></span>
+            </div>
+          </div>
+          <hr>
+
+          <div id="example2" class="bal-container-small">
+            <div class="bal-after">
+              <img src="./assets/imgs/garden_ours.png">
+              <div class="bal-afterPosition afterLabel" style="z-index:1;">
+                ZeroGS
+              </div>
+            </div>
+
+            <div class="bal-before" style="width:6.369426751592357%;">
+              <div class="bal-before-inset" style="width: 628px;">
+                <img src="./assets/imgs/garden_3dgs.png">
+                <div class="bal-beforePosition beforeLabel">
+                  3DGS+COLMAP
+                </div>
+              </div>
+            </div>
+
+            <div class="bal-handle" style="left:6.369426751592357%;">
+              <span class=" handle-left-arrow"></span>
+              <span class="handle-right-arrow"></span>
+            </div>
+          </div>
+          <hr>
+        </div>
+
+        <h3 class="mt-5" id="citation">Please consider citing our paper</h3>
+        <hr class="hr">
+        <pre class="w-100 user-select-all font-monospace border border-secondary mb-5 p-2">@inproceedings{yuchen2024zerogs,
+        title={ZeroGS: Training 3D Gaussian Splatting from Unposed Images},
+        author={Yu Chen, Rolandos Alexandros Potamias, Evangelos Ververas, Jifei Song, Jiankang Deng Gim Hee Lee},
+        booktitle={arXiv},
+        year={2024},
+        }</pre>
+
+        <h3 class="mt-5">Acknowledgement</h3>
+        <p>
+          This work is built upon <a href="https://nianticlabs.github.io/acezero/" target="_blank">ACE0</a>,
+          <a href="https://github.com/naver/dust3r" target="_blank">DUSt3R</a>, and 
+          <a href="https://hengyiwang.github.io/projects/spanner" target="_blank">Spann3R</a>. We sincerely 
+          thank all the authors for releasing their code.
+        </p>
+
+      </div>
+      <div class="col-sm-0 col-md-2"></div>
+
+
+
+    </div>
+  </div>
+
+  <script src="./assets/bootstrap.bundle.min.js"></script>
+  <script src="https://kit.fontawesome.com/746ee6bfa4.js"></script>
+
+  <script src="./assets/slider.js"></script>
+  <script>
+    new BeforeAfter({
+      id: '#example1'
+    });
+    new BeforeAfter({
+      id: '#example2'
+    });
+    new BeforeAfter({
+      id: '#example3'
+    });
+    new BeforeAfter({
+      id: '#example4'
+    });
+    new BeforeAfter({
+      id: '#example6'
+    });
+    new BeforeAfter({
+      id: '#example7'
+    });
+    new BeforeAfter({
+      id: '#example8'
+    });
+    new BeforeAfter({
+      id: '#example9'
+    });
+
+  </script>
+
+  <script>
+    window.addEventListener('load', videoScroll);
+    window.addEventListener('scroll', videoScroll);
+
+    function videoScroll() {
+
+      if (document.querySelectorAll('video[autoplay]').length > 0) {
+
+        var windowHeight = window.innerHeight,
+          videoEl = document.querySelectorAll('video[autoplay]');
+
+        for (var i = 0; i < videoEl.length; i++) {
+
+          var thisVideoEl = videoEl[i],
+            videoHeight = thisVideoEl.clientHeight,
+            videoClientRect = thisVideoEl.getBoundingClientRect().top;
+
+          if ((thisVideoEl.parentNode.classList.contains('carousel-item') && thisVideoEl.parentNode.classList.contains('active')) || (thisVideoEl.parentNode.nodeName === 'DIV' && !thisVideoEl.parentNode.classList.contains('carousel-item'))) {
+            if (videoClientRect <= ((windowHeight) - (videoHeight * .8)) && videoClientRect >= (0 - (videoHeight * .2))) {
+              thisVideoEl.play();
+            } else {
+              thisVideoEl.pause();
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open">
+    <style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style>
+    <div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration"
+      data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}">
+    </div>
+  </template></grammarly-desktop-integration>
+
+</html>

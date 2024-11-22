@@ -1,0 +1,71 @@
+body {
+    background-color: white;
+    color: black;
+}
+
+header {
+  position: relative;
+  height: 350px;
+  width: 100%;
+  overflow: hidden;
+}
+
+header video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  width: auto;
+  height: auto;
+  z-index: 0;
+  -ms-transform: translateX(-50%) translateY(-50%);
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+}
+
+h1 {
+  color: black;
+}
+
+a {
+  color: #ff7300;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #faa97e;
+
+}
+
+hr {
+  color: #ff7300;
+  opacity:100;
+}
+
+.carousel-indicators {
+  top:50px
+}
+
+.carousel-caption {
+  top:0px;
+  color: black;
+}
+
+b {
+  color: black;
+}
+
+li {
+  /* color: lightgray; */
+  color: black;
+}
+
+.carousel-indicators [data-bs-target] {
+  background-color: black;
+}
+
+.carousel-control-next-icon, .carousel-control-prev-icon {
+  color: black;
+  background-color: rgba(71, 63, 63, 0.5);
+}
