@@ -2,7 +2,7 @@
 
 <b>ZeroGS</b>: Training 3D Gaussian Splatting from Unposed Images
 
-[[Project Page](https://aibluefisher.github.io/ZeroGS/) | [arXiv]()(coming soon)]
+[[Project Page](https://aibluefisher.github.io/ZeroGS/) | [arXiv](https://arxiv.org/pdf/2411.15779)]
 
 ## Cite
 
