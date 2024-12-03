@@ -1,10 +1,10 @@
-# ZeroGS
+# <img src="./assets/imgs/zero_gs_logo.png" style="width:45px;height:auto"> ZeroGS
 
 <b>ZeroGS</b>: Training 3D Gaussian Splatting from Unposed Images
 
 [[Project Page](https://aibluefisher.github.io/ZeroGS/) | [arXiv]()(coming soon)]
 
-## Cite
+## ✏️ Cite
 
 If you find this project useful for your research, please consider citing our paper:
 ```bibtex
@@ -15,3 +15,7 @@ If you find this project useful for your research, please consider citing our pa
     year={2024},
 }
 ```
+
+## 🙌 Acknowledgements
+
+This work is built upon ACE, DUSt3R, and Spann3R. We sincerely thank all the authors for releasing their code.
