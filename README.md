@@ -1,4 +1,8 @@
+# <img src="./assets/imgs/zero_gs_logo.png" style="width:45px;height:auto;margin-bottom:-8px"> ZeroGS: Training 3D Gaussian Splatting from Unposed Images
 
+[[Project Page](https://aibluefisher.github.io/ZeroGS/) | [arXiv](https://arxiv.org/pdf/2411.15779)]
+
+---------------------------
 
 ## 🛠️ Installation
 
@@ -66,3 +70,20 @@ pose_estimator:
 ```
 
 A larger value in `min_iterations_per_epoch` can make the mapping more accurate, but also lead to longer training time.
+
+
+## ✏️ Cite
+
+If you find this project useful for your research, please consider citing our paper:
+```bibtex
+@inproceedings{yuchen2024zerogs,
+    title={ZeroGS: Training 3D Gaussian Splatting from Unposed Images},
+    author={Yu Chen, Rolandos Alexandros Potamias, Evangelos Ververas, Jifei Song, Jiankang Deng Gim Hee Lee},
+    booktitle={arXiv},
+    year={2024},
+}
+```
+
+## 🙌 Acknowledgements
+
+This work is built upon [ACE](https://nianticlabs.github.io/ace/), [DUSt3R](https://github.com/naver/dust3r), and [Spann3R](https://hengyiwang.github.io/projects/spanner). We sincerely thank all the authors for releasing their code.
