@@ -1,0 +1,83 @@
+neural_field_type: mlp
+expname: ${neural_field_type}_${task}_${dataset.name}_${dataset.scene}
+task: pose
+seed: 42
+
+dataset:
+  name: llff
+  root_dir: # eg.: /home/user/datasets/${dataset.name}
+  encoder_path: # eg: /home/user/Projects/ZeroGS/conerf/model/scene_regressor/ace_encoder_pretrained.pt
+  scene: ['fern', 'flower', 'fortress', 'horns', 'leaves', 'orchids', 'room', 'trex']
+  image_resolution:
+  scale: true
+  rotate: false
+  use_aug: true
+  aug_rotation: 15
+  aug_scale: 1.5
+  factor: 4
+  val_interval: -1
+  apply_mask: false
+  cam_depth: 0.2
+  axis_len: 1.7
+
+trainer:
+  epochs: 16
+  max_patch_loops_per_epoch: 10
+  samples_per_image: 1024
+  training_buffer_size: 8000000
+  batch_size: 5120
+  min_iterations_per_epoch: 5000
+  max_iterations_per_epoch: 10000
+  early_stop_thresh: 6
+  use_half: true
+  ckpt_path: ""
+  no_load_opt: false
+  no_load_scheduler: false
+  enable_tensorboard: true
+  enable_visdom: false
+  visdom_server: localhost
+  visdom_port: 9002
+  n_tensorboard: 100
+  n_validation: 5000
+  n_checkpoint: 1000
+  distributed: false
+  excluded_gpus: []
+  num_workers: 4
+  local_rank: 0
+
+optimizer:
+  lr_sc_min: 0.0005 # lowest learning rate of 1 cycle scheduler
+  lr_sc_max: 0.003  # highest learning rate of 1 cycle scheduler
+  lr_pr: 1e-3       # learning rate for the pose refiner
+  lr_cr: 1e-3       # learning rate for the calibration refiner
+
+regressor:
+  # ZoeD_N is fine-tuned for metric depth on NYU Depth v2 for relative depth estimation,
+  # ZoeD_K is fine-tuned for metric depth on KITTI for relative depth estimation.
+  # ZoeD_NK has two separate heads fine-tuned on both NYU Depth v2 and KITTI.
+  
+  # [ZoeDepth, metric3d]
+  depth_net_method: ZoeDepth
+  # ZoeDepth: [ZoeD_N, ZoeD_K, ZoeD_NK]; metric3d: [metric3d_vit_small, metric3d_vit_large, metric3d_vit_giant2]
+  depth_net_type: ZoeD_NK
+  num_seed_image_trials: 5
+  num_reloc_images_max: 1000 # the number of relocalization test during seed reconstruction.
+  num_head_blocks: 1         # The depth of the head network.
+  use_homogeneous: true
+  depth_min: 0.1
+  depth_max: 1000 # [ZoeDepth: 1000; metric3d: 200]
+  depth_target: 10
+
+pose_estimator:
+  reproj_thresh: 10 # inlier threshold in pixels (RGB) or centimeters (RGB-D)
+  hypotheses: 64    # number of hypotheses, i.e. number of RANSAC iterations.
+  inlier_alpha: 100 # alpha parameter of the soft inlier count.
+  max_pixel_error: 100 # maximum reprojection (RGB, in px) or 3D distance (RGB-D, in cm) error when checking pose consistency.
+  min_inlier_count: 2000 # minimum number of inlier correspondences when registering an image
+
+loss:
+  repro_loss_hard_clamp: 1000
+  repro_loss_soft_clamp: 50
+  repro_loss_soft_clamp_min: 1
+  repro_loss_type: tanh # dyntanh
+  repro_loss_scheduler: circle
