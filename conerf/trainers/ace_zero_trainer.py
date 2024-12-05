@@ -54,7 +54,7 @@ def depth_to_points3D(
         torch.tensor([height], device=device),
         torch.tensor([width], device=device)
     )[0]
-    
+
     camera = Camera(
         image_index=image_index,
         world_to_camera=pose,
@@ -155,7 +155,8 @@ def compute_reproj_error(
     pred_px_b21 = pred_px_b31[:, :2] / pred_px_b31[:, 2, None]
 
     reprojection_error_b2 = pred_px_b21.squeeze() - target_px_b2
-    reprojection_error_b1 = torch.norm(reprojection_error_b2, dim=1, keepdim=True, p=1)
+    reprojection_error_b1 = torch.norm(
+        reprojection_error_b2, dim=1, keepdim=True, p=1)
 
     return pred_cam_coords_b31, reprojection_error_b1
 
@@ -358,17 +359,24 @@ class AceZeroTrainer(BaseTrainer):
         torch.cuda.reset_peak_memory_stats()
         peak_memory = torch.cuda.max_memory_allocated() / (1024.0 ** 2)
         print(f'PEAK MEMORY BEFORE: {peak_memory}')
-        
-        self.training_buffer['features'] = self.training_buffer['features'].to('cpu')
-        self.training_buffer['target_px'] = self.training_buffer['target_px'].to('cpu')
-        self.training_buffer['sample_idxs'] = self.training_buffer['sample_idxs'].to('cpu')
-        self.training_buffer['image_idxs'] = self.training_buffer['image_idxs'].to('cpu')
-        self.training_buffer['rotations'] = self.training_buffer['rotations'].to('cpu')
-        self.training_buffer['heights'] = self.training_buffer['heights'].to('cpu')
-        self.training_buffer['widths'] = self.training_buffer['widths'].to('cpu')
+
+        self.training_buffer['features'] = self.training_buffer['features'].to(
+            'cpu')
+        self.training_buffer['target_px'] = self.training_buffer['target_px'].to(
+            'cpu')
+        self.training_buffer['sample_idxs'] = self.training_buffer['sample_idxs'].to(
+            'cpu')
+        self.training_buffer['image_idxs'] = self.training_buffer['image_idxs'].to(
+            'cpu')
+        self.training_buffer['rotations'] = self.training_buffer['rotations'].to(
+            'cpu')
+        self.training_buffer['heights'] = self.training_buffer['heights'].to(
+            'cpu')
+        self.training_buffer['widths'] = self.training_buffer['widths'].to(
+            'cpu')
         self.training_buffer = None
         torch.cuda.empty_cache()
-        
+
         torch.cuda.reset_peak_memory_stats()
         peak_memory = torch.cuda.max_memory_allocated() / (1024.0 ** 2)
         print(f'PEAK MEMORY AFTER: {peak_memory}')
@@ -415,17 +423,19 @@ class AceZeroTrainer(BaseTrainer):
         image = self.train_dataset.image(seed_index)
         image = TF.to_pil_image(image)
         color_image = ToTensor()(image)  # [3,H,W]
-        colors = color_image.permute(1, 2, 0).reshape(-1, 3) # [H*W,3]
+        colors = color_image.permute(1, 2, 0).reshape(-1, 3)  # [H*W,3]
         # Rescale the image such that it aligns with the shape input to
         # the scene regressor network.
         resized_image = TF.resize(
             image, [height, width], interpolation=TF.InterpolationMode.NEAREST)
-        resized_colors = ToTensor()(resized_image).permute(1, 2, 0).reshape(-1, 3)  # [h*w,3]
+        resized_colors = ToTensor()(resized_image).permute(
+            1, 2, 0).reshape(-1, 3)  # [h*w,3]
 
         depth, _, _ = depth_network.infer(  # [depth, confidence, output_dict]
             color_image.unsqueeze(0).to(self.device))  # [B=1,1,H,W]
-        color_depth = colorize(depth.cpu().squeeze(0).squeeze(0), cmap_name="jet")  # [H,W,3]
-        resized_depth = TF.resize(depth, [height, width]) # [h,w,1]
+        color_depth = colorize(depth.cpu().squeeze(
+            0).squeeze(0), cmap_name="jet")  # [H,W,3]
+        resized_depth = TF.resize(depth, [height, width])  # [h,w,1]
         resized_color_depth = colorize(resized_depth.cpu().squeeze(
             0).squeeze(0), cmap_name="jet")  # [h,w,3]
         save_images(
@@ -449,11 +459,15 @@ class AceZeroTrainer(BaseTrainer):
             self.config.regressor.depth_max, self.device,
         )
 
-        full_seed_recon_path = os.path.join(self.output_path, f"full_seed_{seed_index}.ply")
-        save_point_cloud(all_scene_coords, colors=colors, path=full_seed_recon_path)
+        full_seed_recon_path = os.path.join(
+            self.output_path, f"full_seed_{seed_index}.ply")
+        save_point_cloud(all_scene_coords, colors=colors,
+                         path=full_seed_recon_path)
 
-        gt_seed_recon_path = os.path.join(self.output_path, f"gt_seed_{seed_index}.ply")
-        save_point_cloud(pseudo_gt_scene_coords, colors=resized_colors, path=gt_seed_recon_path)
+        gt_seed_recon_path = os.path.join(
+            self.output_path, f"gt_seed_{seed_index}.ply")
+        save_point_cloud(pseudo_gt_scene_coords,
+                         colors=resized_colors, path=gt_seed_recon_path)
         _logger.info(
             "pseudo ground truth point clouds are saved to: %s", gt_seed_recon_path)
 
@@ -569,7 +583,16 @@ class AceZeroTrainer(BaseTrainer):
             device=self.device,
         )
         return depth_network
-    
+
+    @torch.no_grad()
+    def update_scene_center(self):
+        _, pred_poses = pose_dict_to_tensor(self.reg_image_idx_to_pose)
+        centers = pred_poses[:, :3, 3]
+
+        self.regressor.heads.mean = torch.mean(
+            centers, dim=0).view(1, 3, 1, 1).to(self.device)
+        print(f'scene center: {self.regressor.heads.mean}')
+
     def initialize(self):
         """
         Initialize the seed reconstruction.
@@ -579,7 +602,8 @@ class AceZeroTrainer(BaseTrainer):
 
         depth_network = self._create_depth_network()
 
-        rand_image_indices = np.random.permutation(len(self.register_dataset)).tolist()
+        rand_image_indices = np.random.permutation(
+            len(self.register_dataset)).tolist()
         num_seed_image_trials = self.config.regressor.num_seed_image_trials
         seed_image_indices = rand_image_indices[:num_seed_image_trials]
 
@@ -628,8 +652,10 @@ class AceZeroTrainer(BaseTrainer):
                     random_batch_indices = random_indices[batch_start:batch_end]
 
                     pixel_idxs = self.training_buffer['sample_idxs'][random_batch_indices]
-                    features = self.training_buffer['features'][random_batch_indices].contiguous()
-                    gt_scene_coords = pseudo_gt_scene_coords[pixel_idxs].contiguous()
+                    features = self.training_buffer['features'][random_batch_indices].contiguous(
+                    )
+                    gt_scene_coords = pseudo_gt_scene_coords[pixel_idxs].contiguous(
+                    )
 
                     # Reshape to a "fake" BCHW shape, since it's faster to run through the network
                     # compared to the original shape.
@@ -638,21 +664,26 @@ class AceZeroTrainer(BaseTrainer):
                         -1, 16, 32, channels).permute(0, 3, 1, 2)
 
                     with autocast(enabled=self.config.trainer.use_half):
-                        pred_scene_coords = regressor.get_scene_coordinates(features)
+                        pred_scene_coords = regressor.get_scene_coordinates(
+                            features)
 
                     pred_scene_coords = pred_scene_coords.permute(
                         0, 2, 3, 1).flatten(0, 2).float()  # [B*H*W,3]
 
                     with torch.no_grad():
-                        target_px_b2 = self.training_buffer['target_px'][random_batch_indices].contiguous()
-                        heights = self.training_buffer['heights'][random_batch_indices].contiguous()
-                        widths = self.training_buffer['widths'][random_batch_indices].contiguous()
+                        target_px_b2 = self.training_buffer['target_px'][random_batch_indices].contiguous(
+                        )
+                        heights = self.training_buffer['heights'][random_batch_indices].contiguous(
+                        )
+                        widths = self.training_buffer['widths'][random_batch_indices].contiguous(
+                        )
                         Ks_b33 = self.calib_refiner(heights, widths)  # [B,3,3]
                         poses_b44 = torch.eye(4, device=self.device)[
                             None, ...].repeat(batch_size, 1, 1)
 
                     _, reprojection_error_b1 = compute_reproj_error(
-                        pred_scene_coords.unsqueeze(-1), target_px_b2, Ks_b33, poses_b44,
+                        pred_scene_coords.unsqueeze(
+                            -1), target_px_b2, Ks_b33, poses_b44,
                         self.config.regressor.depth_min,
                     )
                     min_reproj_error = reprojection_error_b1.min()
@@ -735,12 +766,14 @@ class AceZeroTrainer(BaseTrainer):
         seed_image = seed_image.to(self.device)
 
         with autocast(enabled=True):
-            pred_scene_coords = self.regressor(seed_image.unsqueeze(0))  # [B,3,H,W]
+            pred_scene_coords = self.regressor(
+                seed_image.unsqueeze(0))  # [B,3,H,W]
 
         H, W = pred_scene_coords.shape[-2:]
         seed_image_pil = TF.resize(
             seed_image_pil, [H, W], interpolation=TF.InterpolationMode.NEAREST)
-        colors = ToTensor()(seed_image_pil).permute(1, 2, 0).reshape(-1, 3)  # [H*W,3]
+        colors = ToTensor()(seed_image_pil).permute(
+            1, 2, 0).reshape(-1, 3)  # [H*W,3]
 
         pred_scene_coords = pred_scene_coords.float().cpu().permute(
             0, 2, 3, 1).flatten(0, 2).float()  # [B*H*W,3]
@@ -889,6 +922,8 @@ class AceZeroTrainer(BaseTrainer):
             # The training buffer should be re-created at the beginning
             # of each training iteration. Ref: Sec.3.2 at Page 8.
             self.create_training_buffer(self.train_dataset)
+
+            self.update_scene_center()
 
             training_buffer_size = len(self.training_buffer['features'])
 

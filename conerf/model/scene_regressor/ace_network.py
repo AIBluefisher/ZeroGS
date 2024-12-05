@@ -63,7 +63,8 @@ class Encoder(nn.Module):
 
 class Head(nn.Module):
     """
-    MLP network predicting per-pixel scene coordinates given a feature vector. All layers are 1x1 convolutions.
+    MLP network predicting per-pixel scene coordinates given a feature vector.
+    All layers are 1x1 convolutions.
     """
 
     def __init__(self,
@@ -79,9 +80,8 @@ class Head(nn.Module):
         self.head_channels = 512  # Hardcoded.
 
         # We may need a skip layer if the number of features output by the encoder is different.
-        self.head_skip = nn.Identity() if self.in_channels == self.head_channels else nn.Conv2d(self.in_channels,
-                                                                                                self.head_channels, 1,
-                                                                                                1, 0)
+        self.head_skip = nn.Identity() if self.in_channels == self.head_channels \
+            else nn.Conv2d(self.in_channels, self.head_channels, 1, 1, 0)
 
         self.res3_conv1 = nn.Conv2d(
             self.in_channels, self.head_channels, 1, 1, 0)
@@ -124,8 +124,11 @@ class Head(nn.Module):
         else:
             self.fc3 = nn.Conv2d(self.head_channels, 3, 1, 1, 0)
 
-    def forward(self, res):
+        # Learn scene coordinates relative to a mean coordinate (e.g. center of the scene).
+        mean = torch.zeros(3)
+        self.register_buffer("mean", mean.clone().detach().view(1, 3, 1, 1))
 
+    def forward(self, res):
         x = F.relu(self.res3_conv1(res))
         x = F.relu(self.res3_conv2(x))
         x = F.relu(self.res3_conv3(x))
@@ -145,17 +148,18 @@ class Head(nn.Module):
 
         if self.use_homogeneous:
             # Dehomogenize coords:
-            # Softplus ensures we have a smooth homogeneous parameter with a minimum value = self.max_inv_scale.
-            h_slice = F.softplus( # pylint: disable=E1102
+            # Softplus ensures we have a smooth homogeneous parameter with a
+            # minimum value = self.max_inv_scale.
+            h_slice = F.softplus(  # pylint: disable=E1102
                 sc[:, 3, :, :].unsqueeze(1), beta=self.h_beta.item()
             ) + self.max_inv_scale
             h_slice.clamp_(max=self.min_inv_scale)
             sc = sc[:, :3] / h_slice
 
-        # TODO(chenyu): ACE adds an offset which is the center of cameras to the predicted coordinates.
-        # sc += self.mean.
-        # Therefore, it prefers localization near the center c.
-        # How can we achieve this when the camera poses are unknown?
+        # NOTE: ACE adds an offset which is the center of cameras to the predicted coordinates.
+        # `sc += self.mean`. Therefore, it prefers localization near the center c.
+        # In ACE0, we update it with the mean of camera centers as an approximation.
+        sc += self.mean
 
         return sc
 
@@ -164,7 +168,8 @@ class Regressor(nn.Module):
     """
     FCN architecture for scene coordinate regression.
 
-    The network predicts a 3d scene coordinates, the output is subsampled by a factor of 8 compared to the input.
+    The network predicts a 3d scene coordinates, the output is subsampled by a factor of 8
+    compared to the input.
     """
 
     OUTPUT_SUBSAMPLE = 8
@@ -183,7 +188,8 @@ class Regressor(nn.Module):
         self.feature_dim = num_encoder_features
 
         self.encoder = Encoder(out_channels=self.feature_dim)
-        self.heads = Head(num_head_blocks, use_homogeneous, in_channels=self.feature_dim)
+        self.heads = Head(num_head_blocks, use_homogeneous,
+                          in_channels=self.feature_dim)
 
     @classmethod
     def create_from_encoder(cls, encoder_state_dict, num_head_blocks, use_homogeneous):
@@ -235,7 +241,7 @@ class Regressor(nn.Module):
                      "\n\tHomogeneous coordinates: %d"
                      "\n\tEncoder feature size: %d",
                      num_head_blocks, use_homogeneous, num_encoder_features
-        )
+                     )
         regressor = cls(num_head_blocks, use_homogeneous, num_encoder_features)
 
         # Load all weights.
