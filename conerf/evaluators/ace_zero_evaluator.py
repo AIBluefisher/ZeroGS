@@ -1,4 +1,4 @@
-# pylint: disable=E1101
+# pylint: disable=[E1101,E1102]
 
 import os
 import copy
@@ -135,6 +135,24 @@ class AceZeroEvaluator(Evaluator):
     def eval(
         self, iteration: int = None, split: Literal["val", "test"] = "val",
     ):
+        # Remove points where scene coordinates change more than this threshold from one
+        # pixel to the next (in meters) since scene can have vastly different scales, and
+        # scales are estimates, we try increasingly relaxed thresholds
+        grad_thresholds = [0.1, 0.5, 1.0, torch.inf]
+
+        # Total number of points in the point cloud, at least min even with large re-projection
+        # errors at most max, even if more points have small re-projection errors.
+        pc_points_min, pc_points_max = 100000, 1000000
+
+        pc_points_per_image_min = int(
+            pc_points_min / len(self.register_dataset))
+        pc_points_per_image_max = int(
+            pc_points_max / len(self.register_dataset))
+
+        # Remove points with re-projection larger than threshold (in px) as long as we keep
+        # a min number of points.
+        repro_threshold = 1
+
         eval_dir = os.path.join(self.eval_dir, "val")
         os.makedirs(eval_dir, exist_ok=True)
 
@@ -180,7 +198,7 @@ class AceZeroEvaluator(Evaluator):
                     device=self.device,
                 )  # pose is from camera to world.
 
-                out_pose, _ = pose_refiner(out_pose.unsqueeze( # pylint: disable=E1102
+                out_pose, _ = pose_refiner(out_pose.unsqueeze(  # pylint: disable=E1102
                     0).to(self.device))
                 out_pose = out_pose.squeeze(0)
                 reg_image_idx_to_pose[idx] = out_pose
@@ -213,8 +231,60 @@ class AceZeroEvaluator(Evaluator):
                         poses_b44,
                         self.config.regressor.depth_min,
                     )
-                    valid_points_mask = reproj_error_b1.squeeze(-1) < 2
-                    # TODO(chenyu): remove points with large reprojection errors.
+                    sc_err_mask = reproj_error_b1.squeeze(-1) < repro_threshold
+
+                    # Filter based on gradient of scene coordinates
+                    grad_x = torch.linalg.norm(
+                        scene_coords[:, :, :, 1:] - scene_coords[:, :, :, :-1],  dim=1)
+                    grad_x = torch.nn.functional.pad(
+                        grad_x, (1, 0), mode='reflect')
+                    grad_y = torch.linalg.norm(
+                        scene_coords[:, :, 1:, :] - scene_coords[:, :, :-1, :], dim=1)
+                    grad_y = torch.nn.functional.pad(
+                        grad_y, (0, 0, 1, 0), mode='reflect')
+
+                    grad = torch.max(grad_x, grad_y)
+                    grad = grad.view(scene_coords.shape[0], -1)
+
+                    # Try different grad thresholds, keep the tightest one that still has
+                    # enough points
+                    for grad_threshold in grad_thresholds:
+                        sc_grad_mask = grad.squeeze() < grad_threshold
+                        if sc_grad_mask.sum() > pc_points_per_image_min:
+                            break
+
+                    # check whether enough point survive
+                    num_valid_points = int(sc_err_mask.sum())
+
+                    if num_valid_points < pc_points_per_image_min:
+                        # take min points with lowest reprojection error
+                        reproj_error_within_range_and_smooth = reproj_error_b1.squeeze(-1)[
+                            sc_grad_mask]
+
+                        sorted_errors, _ = torch.sort(
+                            reproj_error_within_range_and_smooth)
+                        relaxed_filter_repro_error = sorted_errors[
+                            min(pc_points_per_image_min,
+                                sorted_errors.shape[0] - 1)
+                        ]
+
+                        sc_err_mask = reproj_error_b1.squeeze(
+                            -1) < relaxed_filter_repro_error
+                        sc_err_mask = torch.logical_and(
+                            sc_grad_mask, sc_err_mask)
+                    elif num_valid_points > pc_points_per_image_max:
+                        # sub-sample points
+                        keep_ratio = pc_points_per_image_max / num_valid_points
+                        sub_sample_mask = torch.randperm(num_valid_points) < int(
+                            keep_ratio * num_valid_points)
+                        sc_err_mask_subsampled = sc_err_mask.clone()
+                        sc_err_mask_subsampled[sc_err_mask] = sub_sample_mask.cuda(
+                        )
+                        sc_err_mask = sc_err_mask_subsampled
+
+                    valid_points_mask = torch.logical_and(
+                        sc_grad_mask, sc_err_mask)
+
                     colors.append(color[valid_points_mask])
                     points3d.append(points[valid_points_mask])
 
@@ -227,9 +297,11 @@ class AceZeroEvaluator(Evaluator):
 
                 fig = plt.figure(figsize=(16, 8))
                 plot_save_poses(
-                    self.config.dataset.cam_depth, fig, filtered_pred_poses.to('cpu'),
+                    self.config.dataset.cam_depth, fig, filtered_pred_poses.to(
+                        'cpu'),
                     pose_ref=filtered_gt_poses.to('cpu'),
-                    path=image_dir, ep=f'filtered_pose_{i:03d}', axis_len=self.config.dataset.axis_len,
+                    path=image_dir, ep=f'filtered_pose_{i:03d}',
+                    axis_len=self.config.dataset.axis_len,
                 )
 
             if len(reg_image_idx_to_pose) > 0:
@@ -252,7 +324,7 @@ class AceZeroEvaluator(Evaluator):
                     f"[Iter {iteration}] rotation error: {pose_error['R_error_mean']:.4f}, " +
                     f"[Iter {iteration}] translation error: {pose_error['t_error_mean']:.4f}"
                 )
-            
+
                 plt.cla()
                 plt.close(fig)
 
@@ -275,7 +347,7 @@ class AceZeroEvaluator(Evaluator):
                 colors = torch.concat(colors, dim=0)
 
                 ply_path = os.path.join(sparse_model_dir, "points3D.ply")
-                save_point_cloud(points3d, colors, ply_path)
+                save_point_cloud(points3d, colors * 255, ply_path)
                 write_cameras_text({0: camera}, os.path.join(
                     sparse_model_dir, "cameras.txt"))
                 save_colmap_images([pred_poses], len(
