@@ -78,7 +78,7 @@ If you find this project useful for your research, please consider citing our pa
 ```bibtex
 @inproceedings{yuchen2024zerogs,
     title={ZeroGS: Training 3D Gaussian Splatting from Unposed Images},
-    author={Yu Chen, Rolandos Alexandros Potamias, Evangelos Ververas, Jifei Song, Jiankang Deng Gim Hee Lee},
+    author={Yu Chen, Rolandos Alexandros Potamias, Evangelos Ververas, Jifei Song, Jiankang Deng, Gim Hee Lee},
     booktitle={arXiv},
     year={2024},
 }
@@ -87,3 +87,9 @@ If you find this project useful for your research, please consider citing our pa
 ## 🙌 Acknowledgements
 
 This work is built upon [ACE](https://nianticlabs.github.io/ace/), [DUSt3R](https://github.com/naver/dust3r), and [Spann3R](https://hengyiwang.github.io/projects/spanner). We sincerely thank all the authors for releasing their code.
+
+## 🪪 License
+
+Copyright © 2024, Chen Yu.
+All rights reserved.
+Please see the [license file](LICENSE) for terms.
